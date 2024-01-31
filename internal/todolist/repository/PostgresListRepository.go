@@ -14,7 +14,7 @@ type Repository struct {
 }
 
 func (r *Repository) CreateTodoList(list *models.TodoList) error {
-	_, err := r.DB.Exec("INSERT INTO lists(id, user_id) VALUES (?, ?)", list.Id, list.UserId)
+	_, err := r.DB.Exec("INSERT INTO lists(id, user_id, name) VALUES ($1, $2, $3)", list.Id, list.UserId, list.Name)
 	if err != nil {
 		return err
 	}

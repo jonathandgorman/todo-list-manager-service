@@ -7,21 +7,21 @@ import (
 )
 
 type TodoListService interface {
-	CreateTodoList(userId string) (string, error)
+	CreateTodoList(userId string, name string) (string, error)
 }
 
 type Service struct {
 	Repo repository.PostgresListRepository
 }
 
-func (s *Service) CreateTodoList(userId string) (string, error) {
-	id := uuid.NewString()
-	todoList := models.NewTodoList(id, userId)
+func (s *Service) CreateTodoList(userId string, name string) (string, error) {
+	listId := uuid.NewString()
+	todoList := models.NewTodoList(listId, userId, name)
 
 	err := s.Repo.CreateTodoList(&todoList)
 	if err != nil {
 		//FIXME log error here
-		return id, err
+		return listId, err
 	}
-	return id, nil
+	return listId, nil
 }

@@ -1,5 +1,7 @@
 CREATE DATABASE todo;
 CREATE TABLE lists (
     id  VARCHAR(100) PRIMARY KEY,
-    user_id VARCHAR(100) NOT NULL
+    user_id VARCHAR(100) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    created TIMESTAMP SET DEFAULT now()
 );
