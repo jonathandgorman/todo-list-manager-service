@@ -9,7 +9,8 @@ import (
 )
 
 type AuthController struct {
-	JwtService *service.JwtService
+	JwtService      *service.JwtService
+	AccountsService *service.PostgresAccountsService
 }
 
 type AuthenticateBody struct {
@@ -37,17 +38,21 @@ func (c *AuthController) Authenticate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//FIXME do not rely on hardcoded user credentials
-	if login.Username == "jonathan.gorman" && login.Password == "password" {
-		jwtToken, _ := c.JwtService.GetToken(login.Username)
-		w.Header().Set("Authorization", "Bearer "+jwtToken)
-		w.WriteHeader(http.StatusOK)
-		_, err := w.Write([]byte("token: " + jwtToken))
-		if err != nil {
-			return
-		}
-	} else {
+	exists, err := c.AccountsService.Exists(login.Username, login.Password)
+	if err != nil {
+		http.Error(w, "Something unexpected went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	if !exists {
 		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	jwtToken, _ := c.JwtService.GetToken(login.Username)
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write([]byte("token: " + jwtToken))
+	if err != nil {
 		return
 	}
 }

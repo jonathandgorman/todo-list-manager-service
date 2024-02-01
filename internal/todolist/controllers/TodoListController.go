@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-type Controller struct {
+type TodoListController struct {
 	Service service.TodoListService
 }
 
@@ -16,14 +16,14 @@ type CreateRequestBody struct {
 	NameKey string `json:"name"`
 }
 
-func (c *Controller) Ping(w http.ResponseWriter, r *http.Request) {
+func (c *TodoListController) Ping(w http.ResponseWriter, r *http.Request) {
 	err := json.NewEncoder(w).Encode("PONG")
 	if err != nil {
 		return
 	}
 }
 
-func (c *Controller) CreateTodoList(w http.ResponseWriter, r *http.Request) {
+func (c *TodoListController) CreateTodoList(w http.ResponseWriter, r *http.Request) {
 
 	userId := uuid.NewString() // random UUID
 	bodyBytes, err := io.ReadAll(r.Body)

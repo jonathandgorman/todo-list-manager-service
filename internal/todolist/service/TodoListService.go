@@ -10,11 +10,11 @@ type TodoListService interface {
 	CreateTodoList(userId string, name string) (string, error)
 }
 
-type Service struct {
-	Repo repository.PostgresListRepository
+type PostgresTodoListService struct {
+	Repo repository.TodoListRepository
 }
 
-func (s *Service) CreateTodoList(userId string, name string) (string, error) {
+func (s *PostgresTodoListService) CreateTodoList(userId string, name string) (string, error) {
 	listId := uuid.NewString()
 	todoList := models.NewTodoList(listId, userId, name)
 

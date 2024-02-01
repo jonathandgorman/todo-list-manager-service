@@ -25,12 +25,16 @@ func main() {
 		log.Fatal("Error getting Postgres database: ", err)
 	}
 
-	listRepo := repository.Repository{DB: db}
-	listService := service.Service{Repo: &listRepo}
-	listController := controllers.Controller{Service: &listService}
+	accountsRepo := repository.PostgresAccountRepository{DB: db}
+	accountsService := service.PostgresAccountsService{Repo: accountsRepo}
+	accountController := &controllers.AccountsController{Service: &accountsService}
+
+	listRepo := repository.PostgresTodoListRepository{DB: db}
+	listService := service.PostgresTodoListService{Repo: &listRepo}
+	listController := controllers.TodoListController{Service: &listService}
 
 	jwtService := &service.JwtService{}
-	authController := &controllers.AuthController{JwtService: jwtService}
+	authController := &controllers.AuthController{JwtService: jwtService, AccountsService: &accountsService}
 
 	router := mux.NewRouter()
 	authenticatedRoute := router.PathPrefix("/secure").Subrouter()
@@ -38,8 +42,9 @@ func main() {
 
 	// Available routes
 	router.HandleFunc("/ping", listController.Ping)
-	router.HandleFunc("/authenticate", authController.Authenticate)
-	authenticatedRoute.HandleFunc("/create", listController.CreateTodoList)
+	router.HandleFunc("/register", accountController.Register)              // register new account
+	router.HandleFunc("/authenticate", authController.Authenticate)         // authenticate and retrieve short-lived token
+	authenticatedRoute.HandleFunc("/create", listController.CreateTodoList) // creates to-do-list
 
 	fmt.Println("Server listening on port 9000...")
 	err = http.ListenAndServe(":9000", router)
