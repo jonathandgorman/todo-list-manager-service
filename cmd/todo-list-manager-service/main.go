@@ -29,11 +29,17 @@ func main() {
 	listService := service.Service{Repo: &listRepo}
 	listController := controllers.Controller{Service: &listService}
 
-	router := mux.NewRouter()
+	jwtService := &service.JwtService{}
+	authController := &controllers.AuthController{JwtService: jwtService}
 
-	// Available routes defined here
+	router := mux.NewRouter()
+	authenticatedRoute := router.PathPrefix("/secure").Subrouter()
+	authenticatedRoute.Use(authController.AuthenticateMiddleware)
+
+	// Available routes
 	router.HandleFunc("/ping", listController.Ping)
-	router.HandleFunc("/create", listController.CreateTodoList)
+	router.HandleFunc("/authenticate", authController.Authenticate)
+	authenticatedRoute.HandleFunc("/create", listController.CreateTodoList)
 
 	fmt.Println("Server listening on port 9000...")
 	err = http.ListenAndServe(":9000", router)
