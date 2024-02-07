@@ -9,6 +9,9 @@ import (
 	"github.com/spf13/viper"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
@@ -26,15 +29,15 @@ func main() {
 	}
 
 	accountsRepo := repository.PostgresAccountRepository{DB: db}
-	accountsService := service.PostgresAccountsService{Repo: accountsRepo}
-	accountController := &controllers.AccountsController{Service: &accountsService}
+	accountsService := service.PostgresAccountsService{Repo: &accountsRepo}
+	accountController := controllers.AccountsController{Service: &accountsService}
 
 	listRepo := repository.PostgresTodoListRepository{DB: db}
 	listService := service.PostgresTodoListService{Repo: &listRepo}
 	listController := controllers.TodoListController{Service: &listService}
 
-	jwtService := &service.JwtService{}
-	authController := &controllers.AuthController{JwtService: jwtService, AccountsService: &accountsService}
+	jwtService := service.JwtService{}
+	authController := &controllers.AuthController{JwtService: &jwtService, AccountsService: &accountsService}
 
 	router := mux.NewRouter()
 	authenticatedRoute := router.PathPrefix("/secure").Subrouter()
@@ -45,6 +48,22 @@ func main() {
 	router.HandleFunc("/register", accountController.Register)              // register new account
 	router.HandleFunc("/authenticate", authController.Authenticate)         // authenticate and retrieve short-lived token
 	authenticatedRoute.HandleFunc("/create", listController.CreateTodoList) // creates to-do-list
+
+	// close database connection on SIGTERM
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		sig := <-signalChannel
+		fmt.Printf("Received signal %v. Shutting down...\n", sig)
+
+		err := db.Close()
+		if err != nil {
+			log.Printf("Error closing database connection: %v\n", err)
+		}
+
+		os.Exit(0)
+	}()
 
 	fmt.Println("Server listening on port 9000...")
 	err = http.ListenAndServe(":9000", router)

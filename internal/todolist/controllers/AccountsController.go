@@ -8,7 +8,7 @@ import (
 )
 
 type AccountsController struct {
-	Service service.AccountsService
+	Service *service.PostgresAccountsService
 }
 
 type RegisterRequest struct {

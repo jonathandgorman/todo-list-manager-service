@@ -8,7 +8,7 @@ import (
 	"log"
 )
 
-const HashCost = 5
+const hashCost = 5
 
 type AccountsService interface {
 	Register(username string, password string) error
@@ -17,11 +17,11 @@ type AccountsService interface {
 }
 
 type PostgresAccountsService struct {
-	Repo repository.PostgresAccountRepository
+	Repo *repository.PostgresAccountRepository
 }
 
 func (s *PostgresAccountsService) SaltAndHashPassword(password []byte) ([]byte, error) {
-	outputPassword, err := bcrypt.GenerateFromPassword(password, HashCost)
+	outputPassword, err := bcrypt.GenerateFromPassword(password, hashCost)
 	if err != nil {
 		return nil, err
 	}
